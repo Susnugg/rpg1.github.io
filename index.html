@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <title>THE DRY WORLD - RPG</title>
     <style>
-        :root { --main: #ff9933; --bg: #0d0d0d; --panel: #1a1a1a; --danger: #ff4444; --accent: #00ccff; --people: #a29bfe; }
+        :root { --main: #ff9933; --bg: #0d0d0d; --panel: #1a1a1a; --accent: #00ccff; --people: #a29bfe; }
         body { background: var(--bg); color: #ddd; font-family: 'Courier New', Courier, monospace; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; transition: background 2s; overflow: hidden; }
         
         body.day { background: #1a0f00; }
@@ -15,10 +15,8 @@
         
         /* HUD */
         #hud { display: none; background: #000; padding: 15px; border-bottom: 2px solid var(--main); flex-direction: column; gap: 8px; }
-        .hud-top { display: flex; justify-content: space-around; font-weight: bold; font-size: 13px; }
-        .bar-bg { width: 100%; height: 6px; background: #333; border-radius: 3px; overflow: hidden; margin: 4px 0; }
-        #hp-bar { height: 100%; width: 100%; background: #2ecc71; transition: width 0.5s; }
-        #env-bar { font-size: 10px; text-transform: uppercase; letter-spacing: 2px; color: #666; text-align: center; }
+        .hud-top { display: flex; justify-content: space-around; font-weight: bold; font-size: 14px; color: var(--main); }
+        #env-bar { font-size: 11px; text-transform: uppercase; letter-spacing: 2px; color: #888; text-align: center; border-bottom: 1px solid #222; padding-bottom: 5px; }
 
         /* Sidebar */
         #sidebar { flex: 1; background: #000; display: none; flex-direction: column; border-left: 1px solid #333; }
@@ -29,7 +27,7 @@
         .tab-content.active { display: block; }
 
         /* NPC Cards */
-        .npc-card { background: #0a0a0a; padding: 12px; margin-bottom: 12px; border: 1px solid #222; border-radius: 4px; }
+        .npc-card { background: #0a0a0a; padding: 12px; margin-bottom: 12px; border: 1px solid #222; border-radius: 4px; border-left: 3px solid var(--people); }
         .npc-name { color: var(--people); font-weight: bold; font-size: 14px; display: block; margin-bottom: 5px; }
         .npc-stat { font-size: 11px; color: #777; margin: 2px 0; }
         .rel-bar-bg { width: 100%; height: 4px; background: #222; margin-top: 5px; border-radius: 2px; }
@@ -38,9 +36,9 @@
         /* Output & Dialogue Formatting */
         #output { flex-grow: 1; overflow-y: auto; padding: 25px; line-height: 1.8; font-size: 16px; scroll-behavior: smooth; }
         .action-text { margin-bottom: 15px; color: #bbb; display: block; }
-        .dialogue-box { color: #fff; font-weight: 900; border-left: 4px solid var(--main); padding: 12px 15px; margin: 20px 0; background: rgba(255,153,51,0.08); font-size: 17px; }
+        .dialogue-box { color: #fff; border-left: 4px solid var(--main); padding: 12px 15px; margin: 20px 0; background: rgba(255,153,51,0.08); font-size: 17px; }
         .user-txt { color: var(--accent); margin: 20px 0; font-weight: bold; text-align: right; font-style: italic; }
-        .ai-txt-block { margin-bottom: 40px; }
+        .ai-txt-block { margin-bottom: 40px; border-bottom: 1px solid #222; padding-bottom: 20px; }
 
         #input-area { padding: 15px; background: #000; display: none; border-top: 1px solid #333; }
         input[type="text"] { width: 100%; background: #111; border: 1px solid #444; color: #fff; padding: 12px; outline: none; box-sizing: border-box; font-family: inherit; }
@@ -54,11 +52,9 @@
 <div id="game-container">
     <div id="main-window">
         <div id="hud">
-            <div id="env-bar">REGION: SCANNING...</div>
-            <div class="bar-bg"><div id="hp-bar"></div></div>
+            <div id="env-bar">REGION: SCANNING... | TIME: 00:00</div>
             <div class="hud-top">
-                <span>CASH: <span id="cash-val">$50</span></span>
-                <span>FOOD: <span id="food-val">3</span></span>
+                <span>PLAYER CASH: <span id="cash-val" style="color: #fff;">$50</span></span>
             </div>
         </div>
         <div id="creator">
@@ -74,7 +70,7 @@
     <div id="sidebar">
         <div class="tabs">
             <button class="tab-btn active" onclick="showTab('inv-tab', this)">EQUIPMENT</button>
-            <button class="tab-btn" onclick="showTab('npc-tab', this)">CONTACTS</button>
+            <button class="tab-btn" onclick="showTab('npc-tab', this)">PEOPLE</button>
         </div>
         <div id="inv-tab" class="tab-content active"><ul id="inventory-list" style="list-style:none; padding:0;"></ul></div>
         <div id="npc-tab" class="tab-content"><div id="npc-list"></div></div>
@@ -82,7 +78,7 @@
 </div>
 
 <script>
-    let messages = [], stats = { hp: 100, cash: 50, food: 3 }, inventory = [], people = {};
+    let messages = [], stats = { cash: 50 }, inventory = [], people = {};
     let currentTime = 480; 
 
     function showTab(id, btn) {
@@ -93,9 +89,7 @@
     }
 
     function updateUI(location = "WASTELAND") {
-        document.getElementById('hp-bar').style.width = stats.hp + "%";
         document.getElementById('cash-val').innerText = "$" + stats.cash;
-        document.getElementById('food-val').innerText = stats.food;
 
         let h = Math.floor(currentTime / 60) % 24;
         let m = Math.floor(currentTime % 60);
@@ -112,6 +106,7 @@
                 <div class="npc-card">
                     <span class="npc-name">👤 ${name}</span>
                     <div class="npc-stat">Role: ${p.job}</div>
+                    <div class="npc-stat">Wealth: $${p.cash}</div>
                     <div class="npc-stat">Affinity:</div>
                     <div class="rel-bar-bg"><div class="rel-bar-fill" style="width:${p.rel}%"></div></div>
                 </div>`;
@@ -125,22 +120,22 @@
         
         messages = [{ 
             role: "system", 
-            content: `Narrator for 'The Dry World'.
+            content: `You are the GM for 'The Dry World'.
             PLAYER: Job: ${document.getElementById('c-job').value}, Personality: ${document.getElementById('c-pers').value}.
             
             RULES:
-            1. DIALOGUE: Use format (NAME: "Dialogue"). 
-            2. SPACING: Keep background narration and dialogue separate.
-            3. NPC LOGS: Only use [NPC:Name|Role|Rel|Cash] tags if the character has a known name. Do NOT add NPCs to the log if they are just "a stranger" or "a figure".
+            1. DIALOGUE: Use strictly: (NAME: "Dialogue"). Talking must be bolded in your internal logic.
+            2. SPACING: Separate story events and talking.
+            3. NPC LOGS: Use [NPC:Name|Role|Affinity|Cash] for EVERY character the player talks to. Do not use generic names like "Stranger".
             4. End with Options A, B, C, D.
-            5. TAGS: [HP-10], [CASH+5], [GET:Item], [LOSE:Item], [LOC:Region Name].` 
+            5. TAGS: [CASH+5], [GET:Item], [LOSE:Item], [LOC:Region Name].` 
         }];
 
         document.getElementById('creator').style.display = 'none';
         document.getElementById('hud').style.display = 'flex';
         document.getElementById('sidebar').style.display = 'flex';
         document.getElementById('input-area').style.display = 'flex';
-        sendAction("Awaken me.");
+        sendAction("I awaken in the dust.");
     }
 
     async function sendAction(text) {
@@ -162,19 +157,17 @@
             const aiMsg = data.choices[0].message.content;
 
             // Stats Processing
-            const statM = aiMsg.matchAll(/\[(HP|CASH|FOOD)([\+\-]\d+)\]/g);
-            for (const m of statM) stats[m[1].toLowerCase()] = Math.min(m[1] === 'HP' ? 100 : 9999, Math.max(0, stats[m[1].toLowerCase()] + parseInt(m[2])));
+            const cashMatch = aiMsg.match(/\[CASH([\+\-]\d+)\]/);
+            if(cashMatch) stats.cash = Math.max(0, stats.cash + parseInt(cashMatch[1]));
             
             const invM = aiMsg.matchAll(/\[(GET|LOSE):(.*?)\]/g);
             for (const m of invM) m[1] === "GET" ? inventory.push(m[2]) : inventory = inventory.filter(i => i !== m[2]);
 
-            // Only add NPC if name is not "Stranger" or "Unknown"
+            // NPC Processing - Fixed Regex
             const npcM = aiMsg.matchAll(/\[NPC:(.*?)\|(.*?)\|(.*?)\|(.*?)\]/g);
             for (const m of npcM) {
                 let name = m[1].trim();
-                if(!name.toLowerCase().includes("stranger") && !name.toLowerCase().includes("unknown")) {
-                    people[name] = { job: m[2].trim(), rel: m[3].replace(/\D/g,''), cash: m[4].replace(/\D/g,'') };
-                }
+                people[name] = { job: m[2].trim(), rel: m[3].replace(/\D/g,'') || 50, cash: m[4].replace(/\D/g,'') || 0 };
             }
             
             const leaveM = aiMsg.matchAll(/\[NPC_LEAVE:(.*?)\]/g);
@@ -193,12 +186,10 @@
         const block = document.createElement('div');
         block.className = "ai-txt-block";
 
-        // Regex to split dialogue from background text
         const dialogueRegex = /\(([^)]+):\s*"([^"]+)"\)/g;
         let lastIndex = 0, match;
 
         while ((match = dialogueRegex.exec(text)) !== null) {
-            // Narrative/Background text before the talking
             const preText = text.substring(lastIndex, match.index).trim();
             if (preText) {
                 const actionSpan = document.createElement('span');
@@ -207,16 +198,14 @@
                 block.appendChild(actionSpan);
             }
             
-            // Bolded Dialogue Box
             const dBox = document.createElement('div');
             dBox.className = "dialogue-box";
-            dBox.innerHTML = `(${match[1]}: "<strong>${match[2]}</strong>")`;
+            dBox.innerHTML = `(${match[1]}: <strong>"${match[2]}"</strong>)`;
             block.appendChild(dBox);
             
             lastIndex = dialogueRegex.lastIndex;
         }
 
-        // Catch remaining narrative text (like options A/B/C)
         const postText = text.substring(lastIndex).trim();
         if (postText) {
             const endSpan = document.createElement('span');
