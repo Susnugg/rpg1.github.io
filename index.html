@@ -43,7 +43,7 @@
         #input-area { padding: 15px; background: #000; display: none; border-top: 1px solid #333; }
         input[type="text"] { width: 100%; background: #111; border: 1px solid #444; color: #fff; padding: 12px; outline: none; box-sizing: border-box; font-family: inherit; }
         
-        /* Creator - Updated for more fields */
+        /* Creator */
         #creator { padding: 30px; text-align: center; width: 100%; overflow-y: auto; }
         .creator-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; max-width: 500px; margin: 0 auto; }
         .input-box { width: 100%; padding: 12px; background: #222; border: 1px solid #444; color: #fff; margin-bottom: 10px; font-family: inherit; box-sizing: border-box; }
@@ -133,19 +133,13 @@
 
         messages = [{ 
             role: "system", 
-            content: `You are the GM for 'The Dry World'.
-            PLAYER CHARACTER:
-            - Name: ${charData.name}
-            - Age: ${charData.age}
-            - Gender: ${charData.gender}
-            - Profession: ${charData.job}
-            - Personality: ${charData.pers}
-            
-            MECHANICS:
-            1. DIALOGUE: (CHARACTER: "Bolded speech here")
-            2. NPC SYSTEM: You MUST include [NPC:Name|Role|Affinity|Cash] every time a character is present or mentioned.
-            3. TAGS: [CASH+5], [GET:Item], [LOSE:Item], [LOC:Region Name].
-            4. END EACH TURN with 4 options: A, B, C, D.` 
+            content: `Narrator for 'The Dry World'.
+            PLAYER CHARACTER: Name: ${charData.name}, Age: ${charData.age}, Gender: ${charData.gender}, Profession: ${charData.job}, Personality: ${charData.pers}.
+            RULES:
+            1. DIALOGUE FORMAT: (NAME: "Speech")
+            2. NPC TAGS: [NPC:Name|Role|Affinity|Cash]
+            3. NO MARKDOWN: Do not use **bold** or italics markers in your text. The system handles formatting.
+            4. End with A, B, C, D options.` 
         }];
 
         document.getElementById('creator').style.display = 'none';
@@ -183,14 +177,9 @@
                 else inventory = inventory.filter(i => i.toLowerCase() !== item.toLowerCase());
             }
 
-            // Fixed NPC Logic: Captures names better
             const npcM = aiMsg.matchAll(/\[NPC:\s*([^|\]]+)\|([^|\]]+)\|([^|\]]+)\|([^|\]]+)\]/g);
             for (const m of npcM) {
-                people[m[1].trim()] = { 
-                    job: m[2].trim(), 
-                    rel: m[3].replace(/\D/g,'') || 50, 
-                    cash: m[4].replace(/\D/g,'') || 0 
-                };
+                people[m[1].trim()] = { job: m[2].trim(), rel: m[3].replace(/\D/g,'') || 50, cash: m[4].replace(/\D/g,'') || 0 };
             }
             
             const leaveM = aiMsg.matchAll(/\[NPC_LEAVE:\s*(.*?)\]/g);
@@ -208,11 +197,14 @@
         const out = document.getElementById('output'), block = document.createElement('div');
         block.className = "ai-txt-block";
 
+        // Pre-cleaning: Remove markdown bolding if AI ignores system prompt
+        let cleanText = text.replace(/\*\*/g, "");
+
         const dialogueRegex = /\(([^)]+):\s*"([^"]+)"\)/g;
         let lastIndex = 0, match;
 
-        while ((match = dialogueRegex.exec(text)) !== null) {
-            const preText = text.substring(lastIndex, match.index).trim();
+        while ((match = dialogueRegex.exec(cleanText)) !== null) {
+            const preText = cleanText.substring(lastIndex, match.index).trim();
             if (preText) {
                 const span = document.createElement('span');
                 span.className = "action-text";
@@ -221,12 +213,13 @@
             }
             const dBox = document.createElement('div');
             dBox.className = "dialogue-box";
-            dBox.innerHTML = `(${match[1]}: <strong>"${match[2]}"</strong>)`;
+            // Hardcoding bold here so it never fails
+            dBox.innerHTML = `(${match[1]}: <b style="font-weight:900;">"${match[2]}"</b>)`;
             block.appendChild(dBox);
             lastIndex = dialogueRegex.lastIndex;
         }
 
-        const postText = text.substring(lastIndex).trim();
+        const postText = cleanText.substring(lastIndex).trim();
         if (postText) {
             const span = document.createElement('span');
             span.className = "action-text";
