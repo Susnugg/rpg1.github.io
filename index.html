@@ -86,7 +86,7 @@
 </div>
 
 <script>
-    let messages = [], stats = { cash: 50 }, inventory = [], people = {};
+    let messages = [], stats = { cash: 50 }, inventory = ["Basic Rags"], people = {};
     let currentTime = 480; 
 
     function showTab(id, btn) {
@@ -102,7 +102,7 @@
         document.getElementById('env-bar').innerText = `REGION: ${location} | TIME: ${h.toString().padStart(2,'0')}:${m.toString().padStart(2,'0')}`;
         document.body.className = (h >= 6 && h <= 18) ? 'day' : 'night';
 
-        document.getElementById('inventory-list').innerHTML = inventory.map(i => `<li style="padding:10px; border-bottom:1px solid #111; font-size:13px;">◈ ${i}</li>`).join('') || "Empty.";
+        document.getElementById('inventory-list').innerHTML = inventory.map(i => `<li style="padding:10px; border-bottom:1px solid #111; font-size:13px;">◈ ${i}</li>`).join('') || "<li style='color:red; font-weight:bold;'>!!! YOU ARE NAKED !!!</li>";
         
         const nList = document.getElementById('npc-list');
         nList.innerHTML = "";
@@ -135,18 +135,25 @@
             role: "system", 
             content: `Narrator for 'The Dry World'.
             PLAYER CHARACTER: Name: ${charData.name}, Age: ${charData.age}, Gender: ${charData.gender}, Profession: ${charData.job}, Personality: ${charData.pers}.
+            
+            APPEARANCE SYSTEM:
+            - Outfits (Clothing, Armor, Rags) are listed in the Equipment/Inventory.
+            - If no clothing is in the inventory, the player is NAKED.
+            - NPCs MUST notice and react realistically to the player's appearance (social shame, vulnerability, or respect for good armor).
+            - Keep reactions gritty and wasteland-appropriate.
+
             RULES:
             1. DIALOGUE FORMAT: (NAME: "Speech")
             2. NPC TAGS: [NPC:Name|Role|Affinity|Cash]
-            3. NO MARKDOWN: Do not use **bold** or italics markers in your text. The system handles formatting.
-            4. End with A, B, C, D options.` 
+            3. NO MARKDOWN: Do not use ** markers.
+            4. END with A, B, C, D options.` 
         }];
 
         document.getElementById('creator').style.display = 'none';
         document.getElementById('hud').style.display = 'flex';
         document.getElementById('sidebar').style.display = 'flex';
         document.getElementById('input-area').style.display = 'flex';
-        sendAction("The adventure begins.");
+        sendAction("I awaken in the wasteland.");
     }
 
     async function sendAction(text) {
@@ -156,7 +163,19 @@
         if (!text) appendMessage(val, "user-txt");
         input.value = "";
         currentTime += 30;
-        messages.push({ role: "user", content: val });
+
+        // Dynamic system prompt update to reflect current inventory/naked status
+        const isNaked = inventory.length === 0 || !inventory.some(item => 
+            item.toLowerCase().includes("rags") || 
+            item.toLowerCase().includes("outfit") || 
+            item.toLowerCase().includes("armor") || 
+            item.toLowerCase().includes("clothes")
+        );
+
+        messages.push({ 
+            role: "user", 
+            content: `Action: ${val}. (System Note: Current Equipment: ${inventory.join(", ") || "NONE"}. Player is ${isNaked ? "NAKED" : "Dressed"}.)` 
+        });
 
         try {
             const res = await fetch("https://api.groq.com/openai/v1/chat/completions", {
@@ -197,7 +216,6 @@
         const out = document.getElementById('output'), block = document.createElement('div');
         block.className = "ai-txt-block";
 
-        // Pre-cleaning: Remove markdown bolding if AI ignores system prompt
         let cleanText = text.replace(/\*\*/g, "");
 
         const dialogueRegex = /\(([^)]+):\s*"([^"]+)"\)/g;
@@ -213,7 +231,6 @@
             }
             const dBox = document.createElement('div');
             dBox.className = "dialogue-box";
-            // Hardcoding bold here so it never fails
             dBox.innerHTML = `(${match[1]}: <b style="font-weight:900;">"${match[2]}"</b>)`;
             block.appendChild(dBox);
             lastIndex = dialogueRegex.lastIndex;
