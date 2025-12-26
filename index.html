@@ -7,35 +7,40 @@
         body { background: #1a0f00; color: #d4a373; font-family: 'Courier New', monospace; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; overflow: hidden; }
         #game-window { width: 90%; max-width: 800px; height: 90%; border: 2px solid #6b4423; background: #000; display: flex; flex-direction: column; box-shadow: 0 0 30px #4e342e; }
         
-        /* Character Creator Styles */
-        #creator-screen { padding: 40px; display: flex; flex-direction: column; gap: 20px; overflow-y: auto; }
-        .creator-title { font-size: 24px; color: #ff6600; text-align: center; text-transform: uppercase; letter-spacing: 5px; }
-        .option-group { display: flex; flex-direction: column; gap: 10px; border-left: 3px solid #333; padding-left: 15px; }
-        select, input[type="text"] { background: #111; border: 1px solid #6b4423; color: #d4a373; padding: 10px; cursor: pointer; }
+        /* Creator Screen */
+        #creator-screen { padding: 40px; display: flex; flex-direction: column; gap: 15px; overflow-y: auto; }
+        .creator-title { font-size: 28px; color: #ff6600; text-align: center; text-transform: uppercase; letter-spacing: 4px; margin-bottom: 5px; }
+        .sub-title { text-align: center; font-size: 13px; color: #8a6d4d; margin-bottom: 20px; }
         
-        /* Main Game Styles */
+        .field-label { font-weight: bold; color: #ff9933; margin-bottom: 5px; display: block; }
+        input[type="text"], input[type="password"], select { 
+            width: 100%; background: #111; border: 1px solid #4e342e; color: #d4a373; padding: 12px; box-sizing: border-box; outline: none;
+        }
+        input:focus { border-color: #ff6600; }
+        
+        /* Main Game Screen */
         #main-game { display: none; flex-direction: column; height: 100%; }
-        #output { flex-grow: 1; overflow-y: auto; padding: 20px; line-height: 1.6; border-bottom: 1px solid #333; }
+        #output { flex-grow: 1; overflow-y: auto; padding: 25px; line-height: 1.7; border-bottom: 1px solid #333; font-size: 16px; }
         #input-container { padding: 15px; display: flex; gap: 10px; background: #0a0a0a; }
         #user-input { flex-grow: 1; background: #000; border: 1px solid #ff6600; color: #fff; padding: 12px; outline: none; }
         
-        .btn-main { background: #ff6600; color: #000; border: none; padding: 15px; font-weight: bold; cursor: pointer; text-transform: uppercase; }
-        .btn-main:hover { background: #fff; }
+        .btn-start { background: #ff6600; color: #000; border: none; padding: 15px; font-weight: bold; cursor: pointer; text-transform: uppercase; margin-top: 10px; }
+        .btn-start:hover { background: #fff; }
         
-        .user-text { color: #5bc0de; font-weight: bold; margin-top: 15px; border-left: 2px solid #5bc0de; padding-left: 10px; }
-        .ai-text { margin-bottom: 20px; }
-        #api-area { font-size: 10px; padding: 10px; background: #111; color: #444; }
+        .user-text { color: #5bc0de; font-weight: bold; margin: 15px 0; padding-left: 10px; border-left: 3px solid #5bc0de; }
+        .ai-text { margin-bottom: 25px; color: #d4a373; }
+        .system-msg { color: #775533; font-style: italic; font-size: 12px; }
     </style>
 </head>
 <body>
 
 <div id="game-window">
     <div id="creator-screen">
-        <div class="creator-title">The World is Dust</div>
-        <p style="text-align: center; font-size: 14px;">The water vanished fifty years ago. Who are you in the wasteland?</p>
+        <div class="creator-title">The Dry World</div>
+        <div class="sub-title">Water is a memory. Dust is the law.</div>
         
-        <div class="option-group">
-            <label>Gender:</label>
+        <div class="field">
+            <span class="field-label">Your Gender:</span>
             <select id="gender">
                 <option value="Male">Male</option>
                 <option value="Female">Female</option>
@@ -43,42 +48,34 @@
             </select>
         </div>
 
-        <div class="option-group">
-            <label>Job (What do you do to survive?):</label>
-            <select id="job">
-                <option value="Water-Witch (Scavenges moisture)">Water-Witch</option>
-                <option value="Sand-Runner (Courier)">Sand-Runner</option>
-                <option value="Scrap-Hunter (Engineer)">Scrap-Hunter</option>
-                <option value="Nomad Guard (Fighter)">Nomad Guard</option>
-            </select>
+        <div class="field">
+            <span class="field-label">Your Job/Role (How do you survive?):</span>
+            <input type="text" id="job" placeholder="e.g. Salt Merchant, Scrap Mechanic, Desperate Thief...">
         </div>
 
-        <div class="option-group">
-            <label>Relationship (Who do you miss?):</label>
-            <input type="text" id="relation" placeholder="e.g. A lost daughter, a rival merchant...">
+        <div class="field">
+            <span class="field-label">Your Personality:</span>
+            <input type="text" id="personality" placeholder="e.g. Quiet and observant, Paranoid but quick, Charismatic liar...">
         </div>
 
-        <div class="option-group">
-            <label>Personality:</label>
-            <select id="personality">
-                <option value="Cynical and Bitter">Cynical & Bitter</option>
-                <option value="Hopeless Dreamer">Hopeless Dreamer</option>
-                <option value="Ruthless Survivor">Ruthless Survivor</option>
-            </select>
+        <div class="field">
+            <span class="field-label">Someone you miss (Relationship):</span>
+            <input type="text" id="relation" placeholder="e.g. My brother who stayed in the city, A child lost to the heat...">
         </div>
 
-        <div id="api-area">
-            <input type="password" id="api-key" placeholder="PASTE GROQ API KEY HERE" style="width: 100%;">
+        <div style="margin-top: 10px;">
+            <span class="field-label" style="font-size: 10px; color: #555;">GROQ API KEY:</span>
+            <input type="password" id="api-key" placeholder="Paste your key here">
         </div>
 
-        <button class="btn-main" onclick="startGame()">Start Journey</button>
+        <button class="btn-start" onclick="startGame()">Step Into The Dust</button>
     </div>
 
     <div id="main-game">
         <div id="output"></div>
         <div id="input-container">
-            <input type="text" id="user-input" placeholder="What is your move?..." onkeypress="if(event.key==='Enter') sendAction()">
-            <button onclick="sendAction()" style="background: #ff6600; color: black; border:none; padding: 10px 20px; cursor: pointer;">SEND</button>
+            <input type="text" id="user-input" placeholder="Type your action..." onkeypress="if(event.key==='Enter') sendAction()">
+            <button onclick="sendAction()" style="background: #ff6600; color: black; border:none; padding: 10px 20px; cursor: pointer; font-weight: bold;">SEND</button>
         </div>
     </div>
 </div>
@@ -88,43 +85,44 @@
 
     async function startGame() {
         const key = document.getElementById('api-key').value;
-        if (!key) return alert("You need a Groq API Key to play!");
+        const job = document.getElementById('job').value;
+        const personality = document.getElementById('personality').value;
 
-        // Collect Character Data
+        if (!key) return alert("Please enter your Groq API Key!");
+        if (!job || !personality) return alert("Tell us your Job and Personality first!");
+
         const charData = {
             gender: document.getElementById('gender').value,
-            job: document.getElementById('job').value,
-            relation: document.getElementById('relation').value || "Nobody left",
-            personality: document.getElementById('personality').value
+            job: job,
+            personality: personality,
+            relation: document.getElementById('relation').value || "the ghosts of the past"
         };
 
-        // Initialize AI Instructions
+        // Initialize the AI GM with the custom traits
         messages = [
             { 
                 role: "system", 
-                content: `You are the Game Master for a text RPG set in 'The Dry World'—a post-apocalyptic earth where water is gone and everything is scorched desert.
+                content: `You are the Game Master for a text RPG set in 'The Dry World'—a post-apocalyptic earth where water has vanished. 
+                The sun is brutal, oceans are salt-flats, and civilizations are just scrap piles.
                 
-                PLAYER CHARACTER:
+                PLAYER PROFILE:
                 - Gender: ${charData.gender}
                 - Job: ${charData.job}
-                - Key Relationship: ${charData.relation}
                 - Personality: ${charData.personality}
+                - Motivation/Relation: They are driven by the memory of ${charData.relation}.
 
-                RULES:
-                1. Use gritty, sensory language (heat, dust, thirst).
-                2. Never play for the player.
-                3. Keep responses under 150 words.
-                4. End every post with 3 short choices (A, B, C).
-                5. If the player mentions their relationship, make it emotional.`
+                GAMEPLAY RULES:
+                1. Focus on the heat, the thirst, and the crunch of sand. 
+                2. Respond with 1-2 paragraphs of vivid narration.
+                3. Keep the player's personality in mind when describing how NPCs react to them.
+                4. End every turn with 3 distinct choices: [A], [B], and [C].
+                5. Do NOT take actions for the player.`
             },
-            { role: "user", content: "I am ready. Describe the opening scene of my journey." }
+            { role: "user", content: "The wind is howling. Start my story." }
         ];
 
-        // Switch Screens
         document.getElementById('creator-screen').style.display = 'none';
         document.getElementById('main-game').style.display = 'flex';
-
-        // Call AI for the first time
         runAI();
     }
 
@@ -151,7 +149,8 @@
                 },
                 body: JSON.stringify({
                     model: "llama-3.3-70b-versatile",
-                    messages: messages
+                    messages: messages,
+                    temperature: 0.8
                 })
             });
 
@@ -161,7 +160,7 @@
             appendMessage(aiText, "ai-text");
             messages.push({ role: "assistant", content: aiText });
         } catch (err) {
-            appendMessage("[CONNECTION ERROR]: Check your key or internet.", "system-msg");
+            appendMessage("[ERROR]: Key rejected or network down.", "system-msg");
         }
     }
 
