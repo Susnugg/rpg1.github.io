@@ -2,165 +2,125 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>THE DRY WORLD - AI RPG</title>
+    <title>THE DRY WORLD - SURVIVAL</title>
     <style>
-        body { background: #1a0f00; color: #d4a373; font-family: 'Courier New', monospace; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; overflow: hidden; }
-        #game-window { width: 90%; max-width: 800px; height: 90%; border: 2px solid #6b4423; background: #000; display: flex; flex-direction: column; box-shadow: 0 0 30px #4e342e; }
+        :root { --main: #ff9933; --bg: #0d0d0d; --panel: #1a1a1a; }
+        body { background: var(--bg); color: #ddd; font-family: 'Segoe UI', sans-serif; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; }
+        #game-window { width: 95%; max-width: 600px; height: 90vh; background: var(--panel); border-radius: 8px; display: flex; flex-direction: column; overflow: hidden; box-shadow: 0 10px 30px rgba(0,0,0,0.5); border: 1px solid #333; }
         
-        /* Creator Screen */
-        #creator-screen { padding: 40px; display: flex; flex-direction: column; gap: 15px; overflow-y: auto; }
-        .creator-title { font-size: 28px; color: #ff6600; text-align: center; text-transform: uppercase; letter-spacing: 4px; margin-bottom: 5px; }
-        .sub-title { text-align: center; font-size: 13px; color: #8a6d4d; margin-bottom: 20px; }
-        
-        .field-label { font-weight: bold; color: #ff9933; margin-bottom: 5px; display: block; }
-        input[type="text"], input[type="password"], select { 
-            width: 100%; background: #111; border: 1px solid #4e342e; color: #d4a373; padding: 12px; box-sizing: border-box; outline: none;
-        }
-        input:focus { border-color: #ff6600; }
-        
+        /* Survival HUD */
+        #hud { display: none; background: #000; padding: 15px; border-bottom: 2px solid var(--main); justify-content: space-around; font-weight: bold; font-size: 14px; color: var(--main); }
+        .stat { display: flex; align-items: center; gap: 8px; }
+        .stat span { color: #fff; }
+
         /* Main Game Screen */
-        #main-game { display: none; flex-direction: column; height: 100%; }
-        #output { flex-grow: 1; overflow-y: auto; padding: 25px; line-height: 1.7; border-bottom: 1px solid #333; font-size: 16px; }
-        #input-container { padding: 15px; display: flex; gap: 10px; background: #0a0a0a; }
-        #user-input { flex-grow: 1; background: #000; border: 1px solid #ff6600; color: #fff; padding: 12px; outline: none; }
-        
-        .btn-start { background: #ff6600; color: #000; border: none; padding: 15px; font-weight: bold; cursor: pointer; text-transform: uppercase; margin-top: 10px; }
-        .btn-start:hover { background: #fff; }
-        
-        .user-text { color: #5bc0de; font-weight: bold; margin: 15px 0; padding-left: 10px; border-left: 3px solid #5bc0de; }
-        .ai-text { margin-bottom: 25px; color: #d4a373; }
-        .system-msg { color: #775533; font-style: italic; font-size: 12px; }
+        #output { flex-grow: 1; overflow-y: auto; padding: 20px; line-height: 1.5; font-size: 15px; }
+        #input-container { padding: 15px; background: #111; display: none; gap: 10px; border-top: 1px solid #222; }
+        input[type="text"] { flex-grow: 1; background: #000; border: 1px solid #444; color: #fff; padding: 12px; border-radius: 4px; outline: none; }
+        input:focus { border-color: var(--main); }
+        button { background: var(--main); color: #000; border: none; padding: 10px 20px; border-radius: 4px; font-weight: bold; cursor: pointer; }
+
+        /* Creator Screen */
+        #creator { padding: 30px; display: flex; flex-direction: column; gap: 15px; text-align: center; }
+        .input-box { width: 100%; padding: 10px; background: #222; border: 1px solid #444; color: #fff; border-radius: 4px; box-sizing: border-box; }
+        .user-txt { color: var(--main); font-weight: bold; margin: 10px 0; }
+        .ai-txt { margin-bottom: 20px; }
     </style>
 </head>
 <body>
 
 <div id="game-window">
-    <div id="creator-screen">
-        <div class="creator-title">The Dry World</div>
-        <div class="sub-title">Water is a memory. Dust is the law.</div>
-        
-        <div class="field">
-            <span class="field-label">Your Gender:</span>
-            <select id="gender">
-                <option value="Male">Male</option>
-                <option value="Female">Female</option>
-                <option value="Non-binary">Non-binary</option>
-            </select>
-        </div>
-
-        <div class="field">
-            <span class="field-label">Your Job/Role (How do you survive?):</span>
-            <input type="text" id="job" placeholder="e.g. Salt Merchant, Scrap Mechanic, Desperate Thief...">
-        </div>
-
-        <div class="field">
-            <span class="field-label">Your Personality:</span>
-            <input type="text" id="personality" placeholder="e.g. Quiet and observant, Paranoid but quick, Charismatic liar...">
-        </div>
-
-        <div class="field">
-            <span class="field-label">Someone you miss (Relationship):</span>
-            <input type="text" id="relation" placeholder="e.g. My brother who stayed in the city, A child lost to the heat...">
-        </div>
-
-        <div style="margin-top: 10px;">
-            <span class="field-label" style="font-size: 10px; color: #555;">GROQ API KEY:</span>
-            <input type="password" id="api-key" placeholder="Paste your key here">
-        </div>
-
-        <button class="btn-start" onclick="startGame()">Step Into The Dust</button>
+    <div id="hud">
+        <div class="stat">HP: <span id="hp-val">100%</span></div>
+        <div class="stat">CASH: <span id="cash-val">$50</span></div>
+        <div class="stat">FOOD: <span id="food-val">3</span></div>
     </div>
 
-    <div id="main-game">
-        <div id="output"></div>
-        <div id="input-container">
-            <input type="text" id="user-input" placeholder="Type your action..." onkeypress="if(event.key==='Enter') sendAction()">
-            <button onclick="sendAction()" style="background: #ff6600; color: black; border:none; padding: 10px 20px; cursor: pointer; font-weight: bold;">SEND</button>
-        </div>
+    <div id="creator">
+        <h2 style="color:var(--main); margin:0;">THE DRY WORLD</h2>
+        <p style="font-size:12px; color:#777;">A post-apocalyptic survival RPG</p>
+        <input type="text" id="c-job" class="input-box" placeholder="Your Job (e.g. Desert Thief)">
+        <input type="text" id="c-pers" class="input-box" placeholder="Personality (e.g. Ruthless)">
+        <input type="password" id="api-key" class="input-box" placeholder="Groq API Key">
+        <button onclick="startGame()">START JOURNEY</button>
+    </div>
+
+    <div id="output"></div>
+
+    <div id="input-container">
+        <input type="text" id="user-input" placeholder="Action..." onkeypress="if(event.key==='Enter') sendAction()">
+        <button onclick="sendAction()">GO</button>
     </div>
 </div>
 
 <script>
     let messages = [];
+    let stats = { hp: 100, cash: 50, food: 3 };
+
+    function updateHUD() {
+        document.getElementById('hp-val').innerText = stats.hp + "%";
+        document.getElementById('cash-val').innerText = "$" + stats.cash;
+        document.getElementById('food-val').innerText = stats.food;
+        if(stats.hp <= 0) alert("You have died in the dust.");
+    }
 
     async function startGame() {
         const key = document.getElementById('api-key').value;
-        const job = document.getElementById('job').value;
-        const personality = document.getElementById('personality').value;
+        const job = document.getElementById('c-job').value;
+        if (!key || !job) return alert("Enter Key and Job!");
 
-        if (!key) return alert("Please enter your Groq API Key!");
-        if (!job || !personality) return alert("Tell us your Job and Personality first!");
+        messages = [{ 
+            role: "system", 
+            content: `You are the Game Master for a wasteland RPG. 
+            PLAYER: Job: ${job}, Personality: ${document.getElementById('c-pers').value}.
+            
+            CORE RULES:
+            1. Response limit: MAX 3-4 sentences. Be punchy.
+            2. At the end of EVERY response, you MUST provide a JSON update for stats if they change, followed by 3 choices.
+            3. Example format: "You find a rusted can of beans. (JSON: {"food": +1}) A. Eat it B. Save it C. Trade it."
+            4. Keep the 'Dry World' vibe: thirsty, hot, dangerous.`
+        }];
 
-        const charData = {
-            gender: document.getElementById('gender').value,
-            job: job,
-            personality: personality,
-            relation: document.getElementById('relation').value || "the ghosts of the past"
-        };
-
-        // Initialize the AI GM with the custom traits
-        messages = [
-            { 
-                role: "system", 
-                content: `You are the Game Master for a text RPG set in 'The Dry World'—a post-apocalyptic earth where water has vanished. 
-                The sun is brutal, oceans are salt-flats, and civilizations are just scrap piles.
-                
-                PLAYER PROFILE:
-                - Gender: ${charData.gender}
-                - Job: ${charData.job}
-                - Personality: ${charData.personality}
-                - Motivation/Relation: They are driven by the memory of ${charData.relation}.
-
-                GAMEPLAY RULES:
-                1. Focus on the heat, the thirst, and the crunch of sand. 
-                2. Respond with 1-2 paragraphs of vivid narration.
-                3. Keep the player's personality in mind when describing how NPCs react to them.
-                4. End every turn with 3 distinct choices: [A], [B], and [C].
-                5. Do NOT take actions for the player.`
-            },
-            { role: "user", content: "The wind is howling. Start my story." }
-        ];
-
-        document.getElementById('creator-screen').style.display = 'none';
-        document.getElementById('main-game').style.display = 'flex';
-        runAI();
+        document.getElementById('creator').style.display = 'none';
+        document.getElementById('hud').style.display = 'flex';
+        document.getElementById('input-container').style.display = 'flex';
+        
+        sendAction("Start the game.");
     }
 
-    async function sendAction() {
+    async function sendAction(overrideText) {
         const input = document.getElementById('user-input');
-        if (!input.value.trim()) return;
+        const text = overrideText || input.value;
+        if (!text) return;
 
-        const val = input.value;
-        appendMessage("> " + val, "user-text");
-        messages.push({ role: "user", content: val });
+        if(!overrideText) appendMessage("> " + text, "user-txt");
         input.value = "";
+        messages.push({ role: "user", content: text });
 
-        runAI();
-    }
-
-    async function runAI() {
-        const apiKey = document.getElementById('api-key').value;
         try {
             const response = await fetch("https://api.groq.com/openai/v1/chat/completions", {
                 method: "POST",
-                headers: {
-                    "Content-Type": "application/json",
-                    "Authorization": `Bearer ${apiKey}`
-                },
-                body: JSON.stringify({
-                    model: "llama-3.3-70b-versatile",
-                    messages: messages,
-                    temperature: 0.8
-                })
+                headers: { "Content-Type": "application/json", "Authorization": `Bearer ${document.getElementById('api-key').value}` },
+                body: JSON.stringify({ model: "llama-3.3-70b-versatile", messages: messages, temperature: 0.7 })
             });
 
             const data = await response.json();
-            const aiText = data.choices[0].message.content;
-            
-            appendMessage(aiText, "ai-text");
+            let aiText = data.choices[0].message.content;
+
+            // Simple logic to parse (JSON: {"hp": -10}) etc from AI text
+            const jsonMatch = aiText.match(/\{"([^"]+)":\s*([\+\-]?\d+)\}/);
+            if (jsonMatch) {
+                const stat = jsonMatch[1];
+                const change = parseInt(jsonMatch[2]);
+                if (stats.hasOwnProperty(stat)) stats[stat] += change;
+                aiText = aiText.replace(/\(JSON:.*?\)/, ""); // Clean the text
+                updateHUD();
+            }
+
+            appendMessage(aiText, "ai-txt");
             messages.push({ role: "assistant", content: aiText });
         } catch (err) {
-            appendMessage("[ERROR]: Key rejected or network down.", "system-msg");
+            appendMessage("Error connecting to the wasteland...", "system-msg");
         }
     }
 
