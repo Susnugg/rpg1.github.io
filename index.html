@@ -2,50 +2,48 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>THE DRY WORLD - ULTIMATE</title>
+    <title>THE DRY WORLD - RPG</title>
     <style>
         :root { --main: #ff9933; --bg: #0d0d0d; --panel: #1a1a1a; --danger: #ff4444; --accent: #00ccff; --people: #a29bfe; }
         body { background: var(--bg); color: #ddd; font-family: 'Courier New', Courier, monospace; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; transition: background 2s; }
         
-        /* Time Themes */
         body.day { background: #1a0f00; }
         body.night { background: #050510; }
 
         #game-container { display: flex; width: 98%; max-width: 1200px; height: 94vh; border: 1px solid #333; overflow: hidden; }
-        #main-window { flex: 2.5; display: flex; flex-direction: column; background: rgba(26, 26, 26, 0.9); border-right: 1px solid #333; position: relative; }
+        #main-window { flex: 2.5; display: flex; flex-direction: column; background: rgba(26, 26, 26, 0.95); border-right: 1px solid #333; }
         
-        /* HUD & Progress Bars */
+        /* HUD */
         #hud { display: none; background: #000; padding: 15px; border-bottom: 2px solid var(--main); flex-direction: column; gap: 10px; }
         .hud-top { display: flex; justify-content: space-around; font-weight: bold; font-size: 13px; }
         .hp-container { width: 100%; height: 6px; background: #333; border-radius: 3px; overflow: hidden; }
-        #hp-bar { height: 100%; width: 100%; background: #2ecc71; transition: width 0.5s, background 0.5s; }
-        
-        /* Location & Time */
+        #hp-bar { height: 100%; width: 100%; background: #2ecc71; transition: width 0.5s; }
         #env-bar { font-size: 10px; text-transform: uppercase; letter-spacing: 2px; color: #666; text-align: center; }
 
         /* Sidebar */
         #sidebar { flex: 1; background: #000; display: none; flex-direction: column; border-left: 1px solid #333; }
         .tabs { display: flex; border-bottom: 1px solid #333; }
-        .tab-btn { flex: 1; padding: 12px; background: #111; border: none; color: #555; cursor: pointer; font-family: inherit; font-size: 11px; }
+        .tab-btn { flex: 1; padding: 12px; background: #111; border: none; color: #555; cursor: pointer; font-family: inherit; font-size: 11px; font-weight: bold; }
         .tab-btn.active { background: #000; color: var(--main); border-bottom: 2px solid var(--main); }
         .tab-content { padding: 15px; flex-grow: 1; overflow-y: auto; display: none; }
         .tab-content.active { display: block; }
 
-        /* NPC & Item UI */
-        .npc-card { background: #111; padding: 10px; margin-bottom: 8px; border: 1px solid #222; border-radius: 4px; }
-        .npc-name { color: var(--people); font-weight: bold; font-size: 14px; cursor: pointer; }
-        .npc-details { font-size: 11px; color: #888; margin-top: 5px; display: none; }
+        /* NPC UI */
+        .npc-card { background: #0a0a0a; padding: 12px; margin-bottom: 10px; border: 1px solid #222; border-radius: 4px; }
+        .npc-name { color: var(--people); font-weight: bold; font-size: 14px; cursor: pointer; display: block; margin-bottom: 5px; }
+        .npc-details { font-size: 12px; color: #888; line-height: 1.4; border-top: 1px solid #1a1a1a; padding-top: 5px; }
+        .npc-details b { color: var(--main); font-weight: normal; }
 
         /* Output */
         #output { flex-grow: 1; overflow-y: auto; padding: 25px; line-height: 1.6; font-size: 16px; }
         #input-area { padding: 15px; background: #000; display: none; border-top: 1px solid #333; }
-        input[type="text"] { width: 100%; background: #111; border: 1px solid #444; color: #fff; padding: 12px; outline: none; box-sizing: border-box; }
+        input[type="text"] { width: 100%; background: #111; border: 1px solid #444; color: #fff; padding: 12px; outline: none; box-sizing: border-box; font-family: inherit; }
         
-        .dialogue { color: #fff; font-weight: bold; text-shadow: 0 0 5px rgba(255,255,255,0.2); }
+        .dialogue { color: #fff; font-weight: bold; }
         .user-txt { color: var(--accent); margin: 15px 0; border-left: 2px solid var(--accent); padding-left: 10px; }
         
         #creator { padding: 50px; text-align: center; width: 100%; }
-        .input-box { width: 80%; padding: 12px; background: #222; border: 1px solid #444; color: #fff; margin-bottom: 10px; }
+        .input-box { width: 80%; padding: 12px; background: #222; border: 1px solid #444; color: #fff; margin-bottom: 10px; font-family: inherit; }
     </style>
 </head>
 <body>
@@ -53,33 +51,27 @@
 <div id="game-container">
     <div id="main-window">
         <div id="hud">
-            <div id="env-bar">REGION: WASTELAND | TIME: 08:00 AM</div>
+            <div id="env-bar">REGION: STARTING... | TIME: 08:00</div>
             <div class="hp-container"><div id="hp-bar"></div></div>
             <div class="hud-top">
                 <div class="stat">CASH: <span id="cash-val">$50</span></div>
                 <div class="stat">FOOD: <span id="food-val">3</span></div>
             </div>
         </div>
-
         <div id="creator">
-            <h1 style="color:var(--main); letter-spacing: 8px;">THE DRY WORLD</h1>
+            <h1 style="color:var(--main); letter-spacing: 5px;">THE DRY WORLD</h1>
             <input type="text" id="c-job" class="input-box" placeholder="Your Job">
             <input type="text" id="c-pers" class="input-box" placeholder="Your Personality">
             <input type="password" id="api-key" class="input-box" placeholder="Groq API Key">
-            <button onclick="startGame()" style="background:var(--main); padding:15px 40px; border:none; cursor:pointer; font-weight:bold;">AWAKEN</button>
+            <button onclick="startGame()" style="background:var(--main); padding:15px; border:none; width:80%; cursor:pointer; font-weight:bold;">START ADVENTURE</button>
         </div>
-
         <div id="output"></div>
-
-        <div id="input-area">
-            <input type="text" id="user-input" placeholder="What is your choice?" onkeypress="if(event.key==='Enter') sendAction()">
-        </div>
+        <div id="input-area"><input type="text" id="user-input" placeholder="A, B, C or custom action..." onkeypress="if(event.key==='Enter') sendAction()"></div>
     </div>
-
     <div id="sidebar">
         <div class="tabs">
-            <button class="tab-btn active" onclick="showTab('inv-tab', this)">EQUIPMENT</button>
-            <button class="tab-btn" onclick="showTab('npc-tab', this)">CONTACTS</button>
+            <button class="tab-btn active" onclick="showTab('inv-tab', this)">ITEMS</button>
+            <button class="tab-btn" onclick="showTab('npc-tab', this)">PEOPLE</button>
         </div>
         <div id="inv-tab" class="tab-content active"><ul id="inventory-list" style="list-style:none; padding:0;"></ul></div>
         <div id="npc-tab" class="tab-content"><div id="npc-list"></div></div>
@@ -88,7 +80,7 @@
 
 <script>
     let messages = [], stats = { hp: 100, cash: 50, food: 3 }, inventory = [], people = {};
-    let currentTime = 480; // 8:00 AM in minutes
+    let currentTime = 480; 
 
     function showTab(id, btn) {
         document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
@@ -100,47 +92,57 @@
     function updateUI(location = "WASTELAND") {
         const hpBar = document.getElementById('hp-bar');
         hpBar.style.width = stats.hp + "%";
-        hpBar.style.background = stats.hp < 30 ? "#e74c3c" : stats.hp < 60 ? "#f1c40f" : "#2ecc71";
-        
         document.getElementById('cash-val').innerText = "$" + stats.cash;
         document.getElementById('food-val').innerText = stats.food;
 
-        // Time Calc
         let h = Math.floor(currentTime / 60) % 24;
         let m = Math.floor(currentTime % 60);
-        let timeStr = `${h.toString().padStart(2, '0')}:${m.toString().padStart(2, '0')}`;
-        document.getElementById('env-bar').innerText = `REGION: ${location} | TIME: ${timeStr}`;
-        
+        document.getElementById('env-bar').innerText = `REGION: ${location} | TIME: ${h.toString().padStart(2,'0')}:${m.toString().padStart(2,'0')}`;
         document.body.className = (h >= 6 && h <= 18) ? 'day' : 'night';
 
-        // Inventory & People
-        document.getElementById('inventory-list').innerHTML = inventory.map(i => `<li style="padding:8px; border-bottom:1px solid #111">▣ ${i}</li>`).join('') || "Empty.";
+        document.getElementById('inventory-list').innerHTML = inventory.map(i => `<li style="padding:5px; border-bottom:1px solid #222">▣ ${i}</li>`).join('') || "Empty.";
         
         const nList = document.getElementById('npc-list');
         nList.innerHTML = "";
         for (let name in people) {
-            nList.innerHTML += `<div class="npc-card"><span class="npc-name" onclick="const d=this.nextElementSibling; d.style.display=d.style.display==='block'?'none':'block'">👤 ${name}</span><div class="npc-details"><b>Role:</b> ${people[name].job}<br><b>Rel:</b> ${people[name].rel}%<br><b>Cash:</b> $${people[name].cash}</div></div>`;
+            nList.innerHTML += `
+                <div class="npc-card">
+                    <span class="npc-name">👤 ${name}</span>
+                    <div class="npc-details">
+                        <b>Role:</b> ${people[name].job}<br>
+                        <b>Rel:</b> ${people[name].rel}<br>
+                        <b>Cash:</b> $${people[name].cash}
+                    </div>
+                </div>`;
         }
     }
 
     async function startGame() {
         const key = document.getElementById('api-key').value;
-        if (!key) return alert("Missing Key!");
+        if (!key) return alert("Key needed.");
         localStorage.setItem('groq_key', key);
         
-        messages = [{ role: "system", content: `You are the AI GM. PLAYER: Job: ${document.getElementById('c-job').value}, Pers: ${document.getElementById('c-pers').value}.
-            MECHANICS:
-            1. Narrate briefly + Dialogue. End with options A, B, C, D.
-            2. HIDDEN TAGS: [HP-10], [CASH+5], [GET:Item], [LOSE:Item], [LOC:Region Name].
-            3. NPC TAGS: [NPC:Name|Job|Relation|Cash]. To remove an NPC: [NPC_LEAVE:Name].
-            4. Time passes 30 mins per turn.` 
+        messages = [{ 
+            role: "system", 
+            content: `You are the GM for 'The Dry World'.
+            PLAYER: Job: ${document.getElementById('c-job').value}, Personality: ${document.getElementById('c-pers').value}.
+            
+            RULES:
+            1. Short gritty narration + Dialogue. End with options A, B, C, D.
+            2. STAT TAGS: [HP-10], [CASH+5], [GET:Item Name], [LOSE:Item Name], [LOC:Region Name].
+            3. NPC TAGS: [NPC:Full Name|Role|RelationValue|CashValue]. 
+               - Full Name: Use a real name, never just one letter.
+               - RelationValue: A number 0-100 (no % sign).
+               - CashValue: A number only (no $ sign).
+               Example: [NPC:Silas Thorne|Trader|65|120].
+            4. If an NPC leaves or dies: [NPC_LEAVE:Full Name].` 
         }];
 
         document.getElementById('creator').style.display = 'none';
         document.getElementById('hud').style.display = 'flex';
         document.getElementById('sidebar').style.display = 'flex';
         document.getElementById('input-area').style.display = 'flex';
-        sendAction("I open my eyes to the heat.");
+        sendAction("I step out into the sun.");
     }
 
     async function sendAction(text) {
@@ -157,30 +159,37 @@
             const res = await fetch("https://api.groq.com/openai/v1/chat/completions", {
                 method: "POST",
                 headers: { "Content-Type": "application/json", "Authorization": `Bearer ${localStorage.getItem('groq_key')}` },
-                body: JSON.stringify({ model: "llama-3.3-70b-versatile", messages: messages })
+                body: JSON.stringify({ model: "llama-3.3-70b-versatile", messages: messages, temperature: 0.8 })
             });
             const data = await res.json();
             const aiMsg = data.choices[0].message.content;
 
-            // Parsing
+            // Parsing Logic
             const statM = aiMsg.matchAll(/\[(HP|CASH|FOOD)([\+\-]\d+)\]/g);
-            for (const m of statM) stats[m[1].toLowerCase()] = Math.min(m[1] === 'HP' ? 100 : 999, Math.max(0, stats[m[1].toLowerCase()] + parseInt(m[2])));
+            for (const m of statM) stats[m[1].toLowerCase()] = Math.min(m[1] === 'HP' ? 100 : 9999, Math.max(0, stats[m[1].toLowerCase()] + parseInt(m[2])));
             
             const invM = aiMsg.matchAll(/\[(GET|LOSE):(.*?)\]/g);
             for (const m of invM) m[1] === "GET" ? inventory.push(m[2]) : inventory = inventory.filter(i => i !== m[2]);
 
             const npcM = aiMsg.matchAll(/\[NPC:(.*?)\|(.*?)\|(.*?)\|(.*?)\]/g);
-            for (const m of npcM) people[m[1]] = { job: m[2], rel: m[3], cash: m[4] };
+            for (const m of npcM) {
+                // Clean AI accidents (removing $ or % if it ignored instructions)
+                let name = m[1].trim();
+                let job = m[2].trim();
+                let rel = m[3].replace(/[^0-9]/g, '');
+                let cash = m[4].replace(/[^0-9]/g, '');
+                people[name] = { job: job, rel: rel, cash: cash };
+            }
             
             const leaveM = aiMsg.matchAll(/\[NPC_LEAVE:(.*?)\]/g);
-            for (const m of leaveM) delete people[m[1]];
+            for (const m of leaveM) delete people[m[1].trim()];
 
             const locMatch = aiMsg.match(/\[LOC:(.*?)\]/);
             updateUI(locMatch ? locMatch[1] : undefined);
             
             appendMessage(aiMsg.replace(/\[.*?\]/g, "").trim(), "ai-txt");
             messages.push({ role: "assistant", content: aiMsg });
-        } catch (e) { appendMessage("The wasteland is silent. (Check Connection)", "ai-txt"); }
+        } catch (e) { console.error(e); }
     }
 
     function appendMessage(text, cls) {
