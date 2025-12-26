@@ -37,7 +37,7 @@
         .ai-txt-block { margin-bottom: 50px; border-bottom: 1px solid #222; padding-bottom: 30px; }
 
         #input-area { padding: 15px; background: #000; display: none; border-top: 1px solid #333; }
-        input[type="text"], select { width: 100%; background: #111; border: 1px solid #444; color: #fff; padding: 12px; outline: none; box-sizing: border-box; font-family: inherit; margin-bottom: 10px; }
+        input[type="text"] { width: 100%; background: #111; border: 1px solid #444; color: #fff; padding: 12px; outline: none; box-sizing: border-box; font-family: inherit; margin-bottom: 10px; }
         
         #creator { padding: 30px; text-align: center; width: 100%; overflow-y: auto; }
         .creator-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; max-width: 500px; margin: 0 auto; }
@@ -61,13 +61,8 @@
                 <input type="text" id="c-age" placeholder="Age">
                 <input type="text" id="c-gender" placeholder="Gender">
                 <input type="text" id="c-job" placeholder="Profession">
-                <select id="c-loc" class="full-width">
-                    <option value="" disabled selected>Starting Location...</option>
-                    <option value="Dusty Outpost">Dusty Outpost (Trading Hub)</option>
-                    <option value="Scavenger Camp">Scavenger Camp (Rough & Lawless)</option>
-                    <option value="Abandoned Vault">Abandoned Vault (Cold & Technical)</option>
-                </select>
-                <input type="text" id="c-pers" class="full-width" placeholder="Personality (e.g. Stoic, Clever)">
+                <input type="text" id="c-loc" class="full-width" placeholder="Starting Location (e.g. Neon Ruins, Salt Flats)">
+                <input type="text" id="c-pers" class="full-width" placeholder="Personality (e.g. Aggressive, Kind)">
                 <input type="password" id="api-key" class="full-width" placeholder="Groq API Key">
             </div>
             <button onclick="startGame()" style="background:var(--main); padding:15px; border:none; width:100%; max-width:500px; cursor:pointer; font-weight:bold; margin-top:10px;">AWAKEN</button>
@@ -113,27 +108,27 @@
 
     async function startGame() {
         const key = document.getElementById('api-key').value;
-        const loc = document.getElementById('c-loc').value;
-        if (!key || !loc) return alert("API Key and Location required.");
+        const startLoc = document.getElementById('c-loc').value || "The Wasteland";
+        if (!key) return alert("API Key required.");
         localStorage.setItem('groq_key', key);
         
         const charData = {
             name: document.getElementById('c-name').value || "Drifter",
-            age: document.getElementById('c-age').value || "Unknown",
+            age: document.getElementById('c-age').value || "Adult",
             gender: document.getElementById('c-gender').value || "Unknown",
             job: document.getElementById('c-job').value || "Survivor",
             pers: document.getElementById('c-pers').value || "Stoic",
-            startLoc: loc
+            loc: startLoc
         };
 
         messages = [{ 
             role: "system", 
             content: `Narrator for 'The Dry World'. 
             PC: Name: ${charData.name}, ${charData.age}, ${charData.gender}, Job: ${charData.job}, Personality: ${charData.pers}.
-            STARTING LOCATION: ${charData.startLoc}.
+            STARTING LOCATION: ${charData.loc}.
 
             MECHANICS:
-            - Clothing in inventory: ${inventory.join(", ")}. If empty, player is NAKED. NPCs react to this.
+            - Clothing in inventory: ${inventory.join(", ")}. If empty, player is NAKED. NPCs MUST react to this.
             - DIALOGUE: (NAME: "Speech")
             - NPC TAGS: [NPC:Name|Role|Affinity|Cash]
             - TAGS: [CASH+5], [GET:Item], [LOSE:Item], [LOC:Region Name].
@@ -144,7 +139,9 @@
         document.getElementById('hud').style.display = 'flex';
         document.getElementById('sidebar').style.display = 'flex';
         document.getElementById('input-area').style.display = 'flex';
-        sendAction(`I awaken in the ${charData.startLoc}. [LOC:${charData.startLoc}]`);
+        
+        // Use the custom location for the first action
+        sendAction(`I awaken in ${charData.loc}. [LOC:${charData.loc}]`);
     }
 
     async function sendAction(text) {
@@ -155,7 +152,7 @@
         input.value = "";
         currentTime += 30;
 
-        const isNaked = !inventory.some(i => i.toLowerCase().match(/rags|outfit|armor|clothes/));
+        const isNaked = !inventory.some(i => i.toLowerCase().match(/rags|outfit|armor|clothes|suit|pants|shirt/));
         messages.push({ role: "user", content: `Action: ${val}. (System: Equipment: ${inventory.join(", ") || "NONE"}. Player is ${isNaked ? "NAKED" : "Dressed"}.)` });
 
         try {
