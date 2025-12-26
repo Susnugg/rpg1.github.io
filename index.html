@@ -26,11 +26,10 @@
         .tab-content { padding: 15px; flex-grow: 1; overflow-y: auto; display: none; }
         .tab-content.active { display: block; }
 
-        /* NPC Cards - Updated Look */
+        /* NPC Cards */
         .npc-card { background: #111; padding: 12px; margin-bottom: 12px; border: 1px solid #333; border-radius: 4px; border-left: 4px solid var(--people); }
         .npc-name { color: var(--people); font-weight: bold; font-size: 15px; display: block; margin-bottom: 4px; text-transform: uppercase; }
         .npc-stat { font-size: 11px; color: #999; margin: 3px 0; }
-        .npc-stat b { color: #555; }
         .rel-bar-bg { width: 100%; height: 5px; background: #222; margin-top: 6px; border-radius: 10px; overflow: hidden; }
         .rel-bar-fill { height: 100%; background: var(--people); transition: width 0.8s ease-in-out; }
 
@@ -44,8 +43,11 @@
         #input-area { padding: 15px; background: #000; display: none; border-top: 1px solid #333; }
         input[type="text"] { width: 100%; background: #111; border: 1px solid #444; color: #fff; padding: 12px; outline: none; box-sizing: border-box; font-family: inherit; }
         
-        #creator { padding: 50px; text-align: center; width: 100%; }
-        .input-box { width: 80%; padding: 12px; background: #222; border: 1px solid #444; color: #fff; margin-bottom: 10px; font-family: inherit; }
+        /* Creator - Updated for more fields */
+        #creator { padding: 30px; text-align: center; width: 100%; overflow-y: auto; }
+        .creator-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; max-width: 500px; margin: 0 auto; }
+        .input-box { width: 100%; padding: 12px; background: #222; border: 1px solid #444; color: #fff; margin-bottom: 10px; font-family: inherit; box-sizing: border-box; }
+        .full-width { grid-column: span 2; }
     </style>
 </head>
 <body>
@@ -53,17 +55,22 @@
 <div id="game-container">
     <div id="main-window">
         <div id="hud">
-            <div id="env-bar">REGION: INITIALIZING... | TIME: --:--</div>
+            <div id="env-bar">REGION: INITIALIZING...</div>
             <div class="hud-top">
                 <span>WALLET: <span id="cash-val" style="color: #fff;">$50</span></span>
             </div>
         </div>
         <div id="creator">
             <h1 style="color:var(--main); letter-spacing: 5px;">THE DRY WORLD</h1>
-            <input type="text" id="c-job" class="input-box" placeholder="Profession">
-            <input type="text" id="c-pers" class="input-box" placeholder="Personality">
-            <input type="password" id="api-key" class="input-box" placeholder="Groq API Key">
-            <button onclick="startGame()" style="background:var(--main); padding:15px; border:none; width:80%; cursor:pointer; font-weight:bold;">AWAKEN</button>
+            <div class="creator-grid">
+                <input type="text" id="c-name" class="input-box" placeholder="Your Name">
+                <input type="text" id="c-age" class="input-box" placeholder="Age">
+                <input type="text" id="c-gender" class="input-box" placeholder="Gender">
+                <input type="text" id="c-job" class="input-box" placeholder="Profession">
+                <input type="text" id="c-pers" class="input-box full-width" placeholder="Personality (e.g. Brave, Greedy)">
+                <input type="password" id="api-key" class="input-box full-width" placeholder="Groq API Key">
+            </div>
+            <button onclick="startGame()" style="background:var(--main); padding:15px; border:none; width:100%; max-width:500px; cursor:pointer; font-weight:bold; margin-top:10px;">AWAKEN</button>
         </div>
         <div id="output"></div>
         <div id="input-area"><input type="text" id="user-input" placeholder="Type your action..." onkeypress="if(event.key==='Enter') sendAction()"></div>
@@ -95,52 +102,57 @@
         document.getElementById('env-bar').innerText = `REGION: ${location} | TIME: ${h.toString().padStart(2,'0')}:${m.toString().padStart(2,'0')}`;
         document.body.className = (h >= 6 && h <= 18) ? 'day' : 'night';
 
-        // Gear
-        document.getElementById('inventory-list').innerHTML = inventory.map(i => `<li style="padding:10px; border-bottom:1px solid #111; font-size:13px;">◈ ${i}</li>`).join('') || "<li style='color:#444'>Pockets are empty.</li>";
+        document.getElementById('inventory-list').innerHTML = inventory.map(i => `<li style="padding:10px; border-bottom:1px solid #111; font-size:13px;">◈ ${i}</li>`).join('') || "Empty.";
         
-        // People
         const nList = document.getElementById('npc-list');
         nList.innerHTML = "";
-        const personKeys = Object.keys(people);
-        if (personKeys.length === 0) {
-            nList.innerHTML = "<div style='color:#444; font-size:12px;'>No contacts yet.</div>";
-        } else {
-            personKeys.forEach(name => {
-                let p = people[name];
-                nList.innerHTML += `
-                    <div class="npc-card">
-                        <span class="npc-name">${name}</span>
-                        <div class="npc-stat"><b>ROLE:</b> ${p.job}</div>
-                        <div class="npc-stat"><b>CASH:</b> $${p.cash}</div>
-                        <div class="rel-bar-bg"><div class="rel-bar-fill" style="width:${p.rel}%"></div></div>
-                    </div>`;
-            });
-        }
+        Object.keys(people).forEach(name => {
+            let p = people[name];
+            nList.innerHTML += `
+                <div class="npc-card">
+                    <span class="npc-name">${name}</span>
+                    <div class="npc-stat"><b>ROLE:</b> ${p.job}</div>
+                    <div class="npc-stat"><b>CASH:</b> $${p.cash}</div>
+                    <div class="rel-bar-bg"><div class="rel-bar-fill" style="width:${p.rel}%"></div></div>
+                </div>`;
+        });
     }
 
     async function startGame() {
         const key = document.getElementById('api-key').value;
-        if (!key) return alert("Key needed.");
+        if (!key) return alert("API Key Required.");
         localStorage.setItem('groq_key', key);
         
+        const charData = {
+            name: document.getElementById('c-name').value || "Drifter",
+            age: document.getElementById('c-age').value || "Unknown",
+            gender: document.getElementById('c-gender').value || "Unknown",
+            job: document.getElementById('c-job').value || "Survivor",
+            pers: document.getElementById('c-pers').value || "Resourceful"
+        };
+
         messages = [{ 
             role: "system", 
-            content: `Narrator for 'The Dry World'.
-            PLAYER: Job: ${document.getElementById('c-job').value}, Personality: ${document.getElementById('c-pers').value}.
+            content: `You are the GM for 'The Dry World'.
+            PLAYER CHARACTER:
+            - Name: ${charData.name}
+            - Age: ${charData.age}
+            - Gender: ${charData.gender}
+            - Profession: ${charData.job}
+            - Personality: ${charData.pers}
             
-            RULES:
-            1. DIALOGUE: (NAME: "Speech") - MUST be used for all talking.
-            2. NPC TAGS: You MUST use [NPC:Name|Role|Affinity|Cash] every time a character speaks or is introduced.
-            3. RELATIONS: Affinity is 0-100.
-            4. TAGS: [CASH+5], [GET:Item], [LOSE:Item], [LOC:Region Name].
-            5. Provide Options A, B, C, D.` 
+            MECHANICS:
+            1. DIALOGUE: (CHARACTER: "Bolded speech here")
+            2. NPC SYSTEM: You MUST include [NPC:Name|Role|Affinity|Cash] every time a character is present or mentioned.
+            3. TAGS: [CASH+5], [GET:Item], [LOSE:Item], [LOC:Region Name].
+            4. END EACH TURN with 4 options: A, B, C, D.` 
         }];
 
         document.getElementById('creator').style.display = 'none';
         document.getElementById('hud').style.display = 'flex';
         document.getElementById('sidebar').style.display = 'flex';
         document.getElementById('input-area').style.display = 'flex';
-        sendAction("The desert sun hits my face.");
+        sendAction("The adventure begins.");
     }
 
     async function sendAction(text) {
@@ -161,11 +173,9 @@
             const data = await res.json();
             const aiMsg = data.choices[0].message.content;
 
-            // 1. Process Stats
             const cashMatch = aiMsg.match(/\[CASH\s*([\+\-]\d+)\]/i);
             if(cashMatch) stats.cash = Math.max(0, stats.cash + parseInt(cashMatch[1]));
             
-            // 2. Process Gear
             const gearM = aiMsg.matchAll(/\[(GET|LOSE):\s*(.*?)\]/gi);
             for (const m of gearM) {
                 const item = m[2].trim();
@@ -173,11 +183,10 @@
                 else inventory = inventory.filter(i => i.toLowerCase() !== item.toLowerCase());
             }
 
-            // 3. Process People (Robust Regex)
+            // Fixed NPC Logic: Captures names better
             const npcM = aiMsg.matchAll(/\[NPC:\s*([^|\]]+)\|([^|\]]+)\|([^|\]]+)\|([^|\]]+)\]/g);
             for (const m of npcM) {
-                const name = m[1].trim();
-                people[name] = { 
+                people[m[1].trim()] = { 
                     job: m[2].trim(), 
                     rel: m[3].replace(/\D/g,'') || 50, 
                     cash: m[4].replace(/\D/g,'') || 0 
@@ -192,12 +201,11 @@
             
             formatAndAppendAI(aiMsg.replace(/\[.*?\]/g, "").trim());
             messages.push({ role: "assistant", content: aiMsg });
-        } catch (e) { console.error("Wasteland Error:", e); }
+        } catch (e) { console.error(e); }
     }
 
     function formatAndAppendAI(text) {
-        const out = document.getElementById('output');
-        const block = document.createElement('div');
+        const out = document.getElementById('output'), block = document.createElement('div');
         block.className = "ai-txt-block";
 
         const dialogueRegex = /\(([^)]+):\s*"([^"]+)"\)/g;
@@ -211,13 +219,10 @@
                 span.innerText = preText;
                 block.appendChild(span);
             }
-            
             const dBox = document.createElement('div');
             dBox.className = "dialogue-box";
-            // Bolded dialogue
             dBox.innerHTML = `(${match[1]}: <strong>"${match[2]}"</strong>)`;
             block.appendChild(dBox);
-            
             lastIndex = dialogueRegex.lastIndex;
         }
 
@@ -228,7 +233,6 @@
             span.innerText = postText;
             block.appendChild(span);
         }
-
         out.appendChild(block);
         out.scrollTop = out.scrollHeight;
     }
