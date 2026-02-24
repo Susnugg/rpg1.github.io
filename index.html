@@ -2,57 +2,57 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>PERSONA CHAT - VISUAL AI</title>
+    <title>PERSONA CHAT - DUAL VISUALS</title>
     <style>
         :root { --main: #a29bfe; --bg: #0d0d0d; --panel: #1a1a1a; --user: #00ccff; --ai: #ff9933; }
-        body { background: var(--bg); color: #ddd; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; overflow: hidden; }
+        body { background: var(--bg); color: #ddd; font-family: 'Segoe UI', sans-serif; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; overflow: hidden; }
 
-        #chat-container { width: 95%; max-width: 800px; height: 90vh; background: #111; border: 1px solid #333; display: flex; flex-direction: column; position: relative; border-radius: 8px; box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
+        #chat-container { width: 95%; max-width: 800px; height: 90vh; background: #111; border: 1px solid #333; display: flex; flex-direction: column; border-radius: 8px; box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
         
-        /* Creator Screen */
-        #setup-screen { padding: 40px; display: flex; flex-direction: column; gap: 15px; overflow-y: auto; }
+        /* Setup Screen */
+        #setup-screen { padding: 30px; display: flex; flex-direction: column; gap: 12px; overflow-y: auto; }
+        .setup-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
         .input-group { display: flex; flex-direction: column; gap: 5px; }
-        label { font-size: 12px; color: var(--main); font-weight: bold; text-transform: uppercase; }
-        textarea, input { background: #1a1a1a; border: 1px solid #333; color: white; padding: 12px; border-radius: 4px; font-family: inherit; }
-        textarea { height: 80px; resize: none; }
+        label { font-size: 11px; color: var(--main); font-weight: bold; text-transform: uppercase; letter-spacing: 1px; }
+        textarea, input { background: #1a1a1a; border: 1px solid #333; color: white; padding: 10px; border-radius: 4px; font-family: inherit; }
+        textarea { height: 70px; resize: none; }
         
-        /* Chat Screen */
+        /* Chat Display */
         #output { flex-grow: 1; overflow-y: auto; padding: 20px; display: none; scroll-behavior: smooth; }
-        .msg { margin-bottom: 20px; max-width: 85%; line-height: 1.5; padding: 12px 16px; border-radius: 12px; }
+        .msg { margin-bottom: 20px; max-width: 85%; line-height: 1.5; padding: 12px 16px; border-radius: 12px; position: relative; }
         .user-msg { align-self: flex-end; background: #222; border-right: 4px solid var(--user); margin-left: auto; }
         .ai-msg { align-self: flex-start; background: #1a1a1a; border-left: 4px solid var(--ai); }
-        .msg-label { font-size: 11px; font-weight: bold; margin-bottom: 4px; display: block; opacity: 0.7; }
+        .msg-label { font-size: 10px; font-weight: bold; margin-bottom: 4px; display: block; opacity: 0.6; text-transform: uppercase; }
 
         #input-area { padding: 20px; background: #000; border-top: 1px solid #333; display: none; gap: 10px; }
         #user-input { flex-grow: 1; }
         
-        .start-btn { background: var(--main); color: #000; border: none; padding: 15px; font-weight: bold; cursor: pointer; border-radius: 4px; margin-top: 10px; }
-        .start-btn:hover { background: #b2abff; }
+        .start-btn { background: var(--main); color: #000; border: none; padding: 15px; font-weight: bold; cursor: pointer; border-radius: 4px; margin-top: 5px; }
     </style>
 </head>
 <body>
 
 <div id="chat-container">
     <div id="setup-screen">
-        <h2 style="color:var(--main); margin-top:0;">PERSONA INITIALIZATION</h2>
+        <h2 style="color:var(--main); margin:0 0 10px 0;">PERSONA INITIALIZATION</h2>
         
-        <div class="input-group">
-            <label>The AI's Character</label>
-            <textarea id="ai-desc" placeholder="Describe the AI. Who are they? How do they talk? (e.g. A tired detective from the 1940s)"></textarea>
+        <div class="setup-grid">
+            <div class="input-group">
+                <label>AI Character (The Bot)</label>
+                <textarea id="ai-desc" placeholder="Who is the AI? (Personality, job, etc.)"></textarea>
+                <label style="margin-top:10px;">AI's Photo</label>
+                <input type="file" id="ai-image" accept="image/*">
+            </div>
+
+            <div class="input-group">
+                <label>Your Character (You)</label>
+                <textarea id="user-desc" placeholder="Who are you playing? (Description, vibe)"></textarea>
+                <label style="margin-top:10px;">Your Photo</label>
+                <input type="file" id="user-image" accept="image/*">
+            </div>
         </div>
 
-        <div class="input-group">
-            <label>Character Visual (Optional)</label>
-            <input type="file" id="image-input" accept="image/*">
-            <small style="color:#666">Upload a picture of what the AI looks like.</small>
-        </div>
-
-        <div class="input-group">
-            <label>Your Description</label>
-            <textarea id="user-desc" placeholder="Who are you in this story? (e.g. A young intern wearing a bright yellow raincoat)"></textarea>
-        </div>
-
-        <div class="input-group">
+        <div class="input-group" style="margin-top:10px;">
             <label>Groq API Key</label>
             <input type="password" id="api-key" placeholder="gsk_...">
         </div>
@@ -63,20 +63,26 @@
     <div id="output"></div>
     <div id="input-area">
         <input type="text" id="user-input" placeholder="Type a message..." onkeypress="if(event.key==='Enter') sendMessage()">
-        <button onclick="sendMessage()" style="background:var(--main); border:none; padding: 0 20px; cursor:pointer; border-radius:4px;">SEND</button>
+        <button onclick="sendMessage()" style="background:var(--main); border:none; padding: 0 20px; cursor:pointer; border-radius:4px; font-weight:bold;">SEND</button>
     </div>
 </div>
 
 <script>
     let messages = [];
-    let base64Image = null;
+    let aiBase64 = null;
+    let userBase64 = null;
 
-    // Convert image to Base64 so AI can "see" it
-    document.getElementById('image-input').addEventListener('change', function(e) {
-        const reader = new FileReader();
-        reader.onload = function() { base64Image = reader.result; };
-        reader.readAsDataURL(e.target.files[0]);
-    });
+    // Helper to convert images
+    function bindImage(elementId, callback) {
+        document.getElementById(elementId).addEventListener('change', function(e) {
+            const reader = new FileReader();
+            reader.onload = function() { callback(reader.result); };
+            if(e.target.files[0]) reader.readAsDataURL(e.target.files[0]);
+        });
+    }
+
+    bindImage('ai-image', (res) => aiBase64 = res);
+    bindImage('user-image', (res) => userBase64 = res);
 
     async function initChat() {
         const key = document.getElementById('api-key').value;
@@ -86,74 +92,70 @@
         if (!key) return alert("API Key required.");
         localStorage.setItem('groq_key', key);
 
-        // System Prompt: Sets the rules and personas
+        // System Prompt
         messages = [{
             role: "system",
-            content: `You are in a roleplay. 
-            YOUR PERSONA: ${aiDesc}. 
-            USER'S PERSONA: ${userDesc}. 
-            Stay in character. If an image was provided, that is your official appearance; refer to it naturally.`
+            content: `Stay in character at all times.
+            AI CHARACTER: ${aiDesc}. 
+            USER CHARACTER: ${userDesc}. 
+            The user will provide visual references for both characters. Use these visuals to describe actions and reactions.`
         }];
 
-        // If image exists, send it in the first message to "show" the AI what it looks like
-        if (base64Image) {
-            messages.push({
-                role: "user",
-                content: [
-                    { type: "text", text: "[System: This is your visual reference. Acknowledge who you are based on this image and the description.]" },
-                    { type: "image_url", image_url: { url: base64Image } }
-                ]
-            });
+        // Package Visual Data
+        let visualContext = {
+            role: "user",
+            content: [{ type: "text", text: "SYSTEM NOTICE: Here are the visual references for our session." }]
+        };
+
+        if (aiBase64) {
+            visualContext.content.push({ type: "text", text: "This is what YOU (the AI) look like:" });
+            visualContext.content.push({ type: "image_url", image_url: { url: aiBase64 } });
         }
+        if (userBase64) {
+            visualContext.content.push({ type: "text", text: "This is what I (the user) look like:" });
+            visualContext.content.push({ type: "image_url", image_url: { url: userBase64 } });
+        }
+
+        if (aiBase64 || userBase64) messages.push(visualContext);
 
         document.getElementById('setup-screen').style.display = 'none';
         document.getElementById('output').style.display = 'flex';
         document.getElementById('output').style.flexDirection = 'column';
         document.getElementById('input-area').style.display = 'flex';
 
-        // Trigger the first response if no image was sent, otherwise the image logic handles it
-        if (!base64Image) {
-            sendMessage("Hello? Are you there?");
-        } else {
-            processAIResponse();
-        }
+        sendMessage("Hello?");
     }
 
-    async function sendMessage(overrideText) {
+    async function sendMessage(textOverride) {
         const input = document.getElementById('user-input');
-        const text = overrideText || input.value;
+        const text = textOverride || input.value;
         if (!text) return;
 
         appendMsg(text, 'user-msg', 'YOU');
-        input.value = "";
+        if(!textOverride) input.value = "";
 
         messages.push({ role: "user", content: text });
-        processAIResponse();
+        processAI();
     }
 
-    async function processAIResponse() {
+    async function processAI() {
         try {
             const res = await fetch("https://api.groq.com/openai/v1/chat/completions", {
                 method: "POST",
-                headers: { 
-                    "Content-Type": "application/json", 
-                    "Authorization": `Bearer ${localStorage.getItem('groq_key')}` 
-                },
+                headers: { "Content-Type": "application/json", "Authorization": `Bearer ${localStorage.getItem('groq_key')}` },
                 body: JSON.stringify({ 
                     model: "llama-3.2-11b-vision-preview", 
                     messages: messages, 
-                    temperature: 0.7 
+                    temperature: 0.8 
                 })
             });
 
             const data = await res.json();
             const reply = data.choices[0].message.content;
-            
             appendMsg(reply, 'ai-msg', 'CHARACTER');
             messages.push({ role: "assistant", content: reply });
         } catch (e) {
-            console.error(e);
-            appendMsg("Error connecting to the brain. Check your API key or connection.", 'ai-msg', 'SYSTEM');
+            appendMsg("Connection error. Check API key.", 'ai-msg', 'SYSTEM');
         }
     }
 
